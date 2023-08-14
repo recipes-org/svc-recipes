@@ -1,0 +1,6 @@
+fastapi
+sqlalchemy[mypy]
+uvicorn[standard]
+
+black
+mypy
