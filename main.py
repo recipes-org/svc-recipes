@@ -1,9 +1,12 @@
+import logging
+
+from sqlalchemy import create_engine
+
 from api import app
 from orm import mapper_registry, start_mappers
 
 
-from sqlalchemy import create_engine
-
+logging.basicConfig(level=logging.INFO)
 
 engine = create_engine("sqlite:///:memory:")
 mapper_registry.metadata.create_all(engine)
