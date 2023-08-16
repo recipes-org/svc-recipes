@@ -1,14 +1,10 @@
 import logging
 
-from sqlalchemy import create_engine
+from api import create_app
 
-from api import app
-from orm import mapper_registry, start_mappers
 
+logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
 
-engine = create_engine("sqlite:///:memory:")
-mapper_registry.metadata.create_all(engine)
-
-start_mappers()
+app = create_app()
