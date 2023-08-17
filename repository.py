@@ -42,5 +42,4 @@ class SQLAlchemyRepository:
 
     def list(self) -> list[domain.RecipeInDB]:
         orm_recipes = self.session.query(orm.Recipe).all()
-        breakpoint()
         return [domain.RecipeInDB.model_validate(o) for o in orm_recipes]

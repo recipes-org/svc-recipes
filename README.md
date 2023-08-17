@@ -16,9 +16,14 @@
 
 - trace and span IDs
 
----
+## Things I actually want
 
-Pydantic and ORMs are difficult - better to follow the FastAPI [official docs](https://fastapi.tiangolo.com/tutorial/sql-databases/#review-all-the-files).
+- async wsgi runner / http layer handler e.g. `uvicorn`
+- routing
+- db interaction - but not necessarily ORM
+    - migrations likely nice
+
+~~Pydantic and ORMs are difficult - better to follow the FastAPI [official docs](https://fastapi.tiangolo.com/tutorial/sql-databases/#review-all-the-files).~~
 
 ... Although that appears to be changing soon.
 
