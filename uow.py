@@ -1,15 +1,10 @@
 from __future__ import annotations
-import logging
 from typing import Any, Protocol
 
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import sessionmaker, clear_mappers
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
-import config, orm, repository
-
-
-logger = logging.getLogger(__name__)
+import repository
 
 
 class UnitOfWork(Protocol):
@@ -35,11 +30,8 @@ class UnitOfWork(Protocol):
 class SqlAlchemyUnitOfWork:
     """SQLAlchemy Unit of Work."""
 
-    def __init__(self, engine: str):
-        if engine.lower() == "memory":
-            self.session_factory = sessionmaker(bind=orm.IN_MEMORY_ENGINE)
-        else:
-            self.session_factory = sessionmaker(bind=orm.create_postgres_engine())
+    def __init__(self, session_factory: sessionmaker):
+        self.session_factory = session_factory
 
     def __enter__(self) -> UnitOfWork:
         self.session: Session = self.session_factory()

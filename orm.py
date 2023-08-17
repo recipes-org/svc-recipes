@@ -1,64 +1,77 @@
-import logging
+from __future__ import annotations
 
-from sqlalchemy import Engine, Table, Column, Integer, String, ForeignKey, create_engine
-from sqlalchemy.orm import relationship, registry
+from sqlalchemy import Float, Column, String, ForeignKey, create_engine
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-import config
-from models import Recipe, RecipeInDB, Requirement, RequirementInDB
-
-
-logger = logging.getLogger(__name__)
+import domain
 
 
-IN_MEMORY_ENGINE = create_engine("sqlite:///:memory:")
+SQLALCHEMY_DATABASE_URL = "sqlite://"
+
+Base = declarative_base()
 
 
-mapper_registry = registry()
+class Recipe(Base):
+    __tablename__ = "recipe"
 
+    id = Column(String(255), primary_key=True)
+    name = Column(String(255), nullable=False)
+    # Idea here is cannot have multiple transactions updating the same table
+    # But that seems inlikely and also not business-critical
+    # Like no-one loses money if that happens
+    # And would likely be constrained by any kind of user system in practice
+    # Even if multiple users have permission to update
+    # version = Column(Integer, nullable=False, server_default="0")
 
-recipes = Table(
-    "recipes",
-    mapper_registry.metadata,
-    Column("id", String(255), primary_key=True),
-    Column("name", String(255), nullable=False),
-    Column("version", Integer, nullable=False, server_default="0"),
-)
+    requirements = relationship("Requirement", back_populates="recipe")
 
-requirements = Table(
-    "requirements",
-    mapper_registry.metadata,
-    Column("ingredient", String(255), primary_key=True),
-    Column("recipe_id", ForeignKey("recipes.id"), primary_key=True),
-    Column("measurement", String(255), nullable=False),
-    Column("quantity", Integer, nullable=False),
-)
-
-
-def start_mappers() -> None:
-    requirements_mapper = mapper_registry.map_imperatively(Requirement, requirements)
-    mapper_registry.map_imperatively(
-        Recipe,
-        recipes,
-        properties={
-            "requirements": relationship(
-                requirements_mapper,
-                backref="recipe",
-                collection_class=list,
+    @classmethod
+    def from_domain(cls, recipe: domain.RecipeInDB) -> Recipe:
+        return cls(
+            **(
+                recipe.model_dump()
+                | {
+                    "requirements": [
+                        Requirement(**requirement.model_dump())
+                        for requirement in recipe.requirements
+                    ]
+                }
             )
-        },
+        )
+
+
+# There will be a lot of "1 pinch of salt" rows.
+# That may point to a "requirement" table.
+# Combined with an association table between recipe and requirement
+# Where multiple recipes can point to the same requirement.
+# Constrast with, say, "500 grams of flour".
+# There may be many many different requirements in the end.
+# Especially considering the different measurements used around the world.
+# Which would require converting all the measurements to some cardinal measurement.
+# So save a join and take the hit on some duplicated data.
+class Requirement(Base):
+    __tablename__ = "requirement"
+
+    ingredient = Column(String(255), primary_key=True)
+    measurement = Column(String(255), nullable=False)
+    quantity = Column(Float, nullable=False)
+    recipe_id = Column(String(255), ForeignKey("recipe.id"), nullable=False)
+
+    recipe = relationship("Recipe", back_populates="requirements")
+
+
+session_factory: sessionmaker
+
+
+def initialise_db() -> None:
+    global session_factory
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
     )
-    logger.info("Started mappers")
 
+    # only cos in memory
+    Base.metadata.create_all(engine)
 
-def create_postgres_engine() -> Engine:
-    return create_engine(
-        config.get_postgres_uri(),
-        isolation_level="REPEATABLE READ",
-    )
-
-
-def initialise_db(engine_name: str) -> None:
-    logger.info("Initialise DB with %s", engine_name)
-    if engine_name.lower() == "memory":
-        mapper_registry.metadata.create_all(IN_MEMORY_ENGINE)
-    start_mappers()
+    session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)

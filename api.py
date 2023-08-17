@@ -1,5 +1,4 @@
 import logging
-import os
 
 from fastapi import FastAPI
 
@@ -12,6 +11,6 @@ def create_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router.router)
 
-    orm.initialise_db(engine_name=os.environ.get("RECIPES_DB_ENGINE", "memory"))
+    orm.initialise_db()
 
     return app
