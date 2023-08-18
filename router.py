@@ -11,16 +11,14 @@ router = APIRouter()
 
 @router.get("/recipes/")
 async def get_recipes() -> list[domain.RecipeInDB]:
-    return services.get_recipes(
-        uow=uow.SqlAlchemyUnitOfWork(session_factory=orm.session_factory)
-    )
+    return services.get_recipes(uow=uow.SessionUnitOfWork())
 
 
 @router.post("/recipes/")
 async def create_recipe(recipe: domain.Recipe) -> domain.RecipeInDB:
     logger.info("recipe=%r", recipe)
     return services.create_recipe(
-        uow=uow.SqlAlchemyUnitOfWork(session_factory=orm.session_factory),
+        uow=uow.SessionUnitOfWork(),
         recipe=recipe,
     )
 
@@ -28,7 +26,4 @@ async def create_recipe(recipe: domain.Recipe) -> domain.RecipeInDB:
 @router.get("/recipes/{recipe_id}")
 async def get_recipe(recipe_id: str) -> domain.RecipeInDB:
     logger.info("recipe_id=%s", recipe_id)
-    return services.get_recipe(
-        uow=uow.SqlAlchemyUnitOfWork(session_factory=orm.session_factory),
-        recipe_id=recipe_id,
-    )
+    return services.get_recipe(uow=uow.SessionUnitOfWork(), recipe_id=recipe_id)

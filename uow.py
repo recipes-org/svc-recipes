@@ -1,9 +1,8 @@
 from __future__ import annotations
+import os
 from typing import Any, Protocol
 
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
-
+import config
 import repository
 
 
@@ -27,23 +26,20 @@ class UnitOfWork(Protocol):
         ...
 
 
-class SqlAlchemyUnitOfWork:
-    """SQLAlchemy Unit of Work."""
-
-    def __init__(self, session_factory: sessionmaker):
-        self.session_factory = session_factory
+class SessionUnitOfWork:
+    """Session-based Unit of Work."""
 
     def __enter__(self) -> UnitOfWork:
-        self.session: Session = self.session_factory()
-        self.recipes = repository.SQLAlchemyRepository(self.session)
+        repository_name = config.Config().recipes_repository_name
+        self.recipes: repository.Repository = getattr(repository, repository_name)()
         return self
 
     def __exit__(self, *args: Any) -> None:
         self.rollback()
-        self.session.close()
+        self.recipes.session.close()
 
     def commit(self) -> None:
-        self.session.commit()
+        self.recipes.session.commit()
 
     def rollback(self) -> None:
-        self.session.rollback()
+        self.recipes.session.rollback()
