@@ -15,7 +15,7 @@ class Repository(Protocol):
     session: Session
 
     @classmethod
-    def initialise(cls) -> None:
+    def initialise(cls, sql_alchemy_database_url: str) -> None:
         ...
 
     def add(self, recipe: domain.Recipe) -> domain.RecipeInDB:
