@@ -8,9 +8,6 @@ import domain
 import orm
 
 
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-
-
 class Repository(Protocol):
     """Recipe repository protocol."""
 
@@ -38,13 +35,11 @@ class SQLAlchemyRepository:
     session_factory = None
 
     @classmethod
-    def initialise(cls) -> None:
+    def initialise(cls, sql_alchemy_database_url: str) -> None:
         engine = create_engine(
-            SQLALCHEMY_DATABASE_URL,
+            sql_alchemy_database_url,
             connect_args={"check_same_thread": False},
         )
-
-        # orm.Base.metadata.create_all(engine)
 
         cls.engine = engine
         cls.session_factory = sessionmaker(
@@ -53,7 +48,7 @@ class SQLAlchemyRepository:
 
     def __init__(self):
         if self.session_factory is None:
-            raise RuntimeError("Repository not initialised.")
+            raise RuntimeError(f"{self.__class__.__name__} not initialised.")
         self.session = self.session_factory()
 
     def add(self, recipe: domain.Recipe) -> domain.RecipeInDB:
@@ -75,6 +70,12 @@ class SQLAlchemyRepository:
 
 class SQLAlchemyMemoryRepository(SQLAlchemyRepository):
     @classmethod
-    def initialise(cls) -> None:
-        super().initialise()
+    def initialise(cls, sql_alchemy_database_url: str) -> None:
+        # Not actually sure whether this returns an instance or the class.
+        # Either way, it does seem to work.
+        # Docs not clear tbh - but would appear to be the class method.
+        # I suppose if it _wasn't_ the class method this approach would not
+        # work because the instance returned by super would only set the
+        # session factory (and engine) for that instance.
+        super().initialise(sql_alchemy_database_url)
         orm.Base.metadata.create_all(cls.engine)

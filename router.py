@@ -1,8 +1,9 @@
 import logging
 from fastapi import APIRouter
 
-import domain, orm, services, uow
-
+import domain
+import services
+import uow
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,7 @@ async def get_recipes() -> list[domain.RecipeInDB]:
 @router.post("/recipes/")
 async def create_recipe(recipe: domain.Recipe) -> domain.RecipeInDB:
     logger.info("recipe=%r", recipe)
-    return services.create_recipe(
-        uow=uow.SessionUnitOfWork(),
-        recipe=recipe,
-    )
+    return services.create_recipe(uow=uow.SessionUnitOfWork(), recipe=recipe)
 
 
 @router.get("/recipes/{recipe_id}")
