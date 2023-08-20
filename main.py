@@ -1,6 +1,6 @@
 import logging
 
-from api import create_app
+from app import create_app
 
 
 logger = logging.getLogger(__name__)
