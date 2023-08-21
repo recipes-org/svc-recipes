@@ -47,14 +47,10 @@ class SessionUnitOfWork:
 
     async def __aexit__(self, *args: Any) -> None:
         await self.rollback()
-
-        # TODO: interesting one - db connections would need to be async
-        self.recipes.session.close()
+        await self.recipes.session.close()
 
     async def commit(self) -> None:
-        # TODO: interesting one - db connections would need to be async
-        self.recipes.session.commit()
+        await self.recipes.session.commit()
 
     async def rollback(self) -> None:
-        # TODO: interesting one - db connections would need to be async
-        self.recipes.session.rollback()
+        await self.recipes.session.rollback()

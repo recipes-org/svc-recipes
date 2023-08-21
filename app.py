@@ -1,3 +1,5 @@
+import asyncio
+from functools import partial
 import logging
 
 from fastapi import FastAPI
@@ -20,11 +22,12 @@ def create_app(cfg: config.Config | None = None) -> FastAPI:
 
     logger.info(cfg)
 
-    # NB classmethods
     repository_cls = repository.SQLAlchemyMemoryRepository
-    repository_cls.initialise(cfg)
-    # Could probably treat the UnitOfWork as we treat the repository.
-    # and "initialise" the router with a unit of work class but seems overkill.
-    uow.SessionUnitOfWork.initialise(repository_cls)
+
+    async def initialise() -> None:
+        await repository_cls.initialise(cfg)
+        uow.SessionUnitOfWork.initialise(repository_cls)
+
+    app.add_event_handler("startup", initialise)
 
     return app

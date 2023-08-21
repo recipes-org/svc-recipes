@@ -1,8 +1,14 @@
+import asyncio
 from typing import Protocol
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import sessionmaker, Session
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 import config
 import domain
@@ -12,11 +18,11 @@ import orm
 class Repository(Protocol):
     """Recipe repository protocol."""
 
-    session_factory: sessionmaker[Session] | None
-    session: Session
+    session_factory: async_sessionmaker[AsyncSession] | None
+    session: AsyncSession
 
     @classmethod
-    def initialise(cls, config: config.Config) -> None:
+    async def initialise(cls, cfg: config.Config) -> None:
         ...
 
     async def add(self, recipe: domain.Recipe) -> domain.RecipeInDB:
@@ -32,18 +38,18 @@ class Repository(Protocol):
 class SQLAlchemyRepository:
     """SQLAlchemy implementation of the Recipe repository protocol."""
 
-    engine = None
-    session_factory = None
+    engine: AsyncEngine | None = None
+    session_factory: async_sessionmaker[AsyncSession] | None = None
 
     @classmethod
-    def initialise(cls, config: config.Config) -> None:
-        engine = create_engine(
-            config.recipes_sql_alchemy_database_url,
+    async def initialise(cls, cfg: config.Config) -> None:
+        engine = create_async_engine(
+            cfg.recipes_sql_alchemy_database_url,
             connect_args={"check_same_thread": False},
         )
 
         cls.engine = engine
-        cls.session_factory = sessionmaker(
+        cls.session_factory = async_sessionmaker(
             autocommit=False, autoflush=False, bind=engine
         )
 
@@ -59,24 +65,31 @@ class SQLAlchemyRepository:
         return recipe_in_db
 
     async def get(self, recipe_id: str) -> domain.RecipeInDB:
-        orm_recipe = (
-            self.session.query(orm.Recipe).filter(orm.Recipe.id == recipe_id).one()
+        stmt = (
+            select(orm.Recipe)
+            .options(selectinload(orm.Recipe.requirements))
+            .where(orm.Recipe.id == recipe_id)
         )
-        return domain.RecipeInDB.model_validate(orm_recipe)
+        orm_recipe = await self.session.execute(stmt)
+        return domain.RecipeInDB.model_validate(orm_recipe.scalar_one())
 
     async def list(self) -> list[domain.RecipeInDB]:
-        orm_recipes = self.session.query(orm.Recipe).all()
+        stmt = select(orm.Recipe).options(selectinload(orm.Recipe.requirements))
+        orm_recipes = (await self.session.execute(stmt)).scalars().all()
         return [domain.RecipeInDB.model_validate(o) for o in orm_recipes]
 
 
 class SQLAlchemyMemoryRepository(SQLAlchemyRepository):
     @classmethod
-    def initialise(cls, config: config.Config) -> None:
+    async def initialise(cls, cfg: config.Config) -> None:
         # Not actually sure whether this returns an instance or the class.
         # Either way, it does seem to work.
         # Docs not clear tbh - but would appear to be the class method.
         # I suppose if it _wasn't_ the class method this approach would not
         # work because the instance returned by super would only set the
         # session factory (and engine) for that instance.
-        super().initialise(config)
-        orm.Base.metadata.create_all(cls.engine)
+        await super().initialise(cfg)
+
+        assert cls.engine
+        async with cls.engine.begin() as conn:
+            await conn.run_sync(orm.Base.metadata.create_all)

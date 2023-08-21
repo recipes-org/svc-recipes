@@ -63,14 +63,15 @@ So save a join and take the hit on some duplicated data.
 
 from __future__ import annotations
 
-from sqlalchemy import Float, Column, String, ForeignKey, create_engine
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Float, Column, String, ForeignKey
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
 
 import domain
 
 
-Base = declarative_base()
+class Base(AsyncAttrs, DeclarativeBase):
+    pass
 
 
 class Recipe(Base):
@@ -109,24 +110,3 @@ class Requirement(Base):
 
 
 session_factory: sessionmaker
-
-
-# In practice, particular repository seems rather tied to the storage implementation.
-# Yes, repositories should be interchangeable.
-# But, a database-based repository will require some kind of connection / engine /
-# session factory like the below.
-# If the repository is the way outer layers talk to the storage / persistence layer(s),
-# that points to this being part of the `Repository` protocol.
-# Indeed, the strange `Base.metadata.create_all(engine)` required for in-memory sqlite
-# databases only moves to the initialise method on an `SQLAlchemyMemoryRepository`.
-# def initialise_db() -> None:
-#     global session_factory
-#     engine = create_engine(
-#         SQLALCHEMY_DATABASE_URL,
-#         connect_args={"check_same_thread": False},
-#     )
-
-#     # only cos in memory rn
-#     Base.metadata.create_all(engine)
-
-#     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
