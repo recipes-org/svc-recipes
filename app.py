@@ -1,5 +1,3 @@
-import asyncio
-from functools import partial
 import logging
 
 from fastapi import FastAPI

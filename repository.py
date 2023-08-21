@@ -1,4 +1,3 @@
-import asyncio
 from typing import Protocol
 
 from sqlalchemy import select
@@ -82,14 +81,7 @@ class SQLAlchemyRepository:
 class SQLAlchemyMemoryRepository(SQLAlchemyRepository):
     @classmethod
     async def initialise(cls, cfg: config.Config) -> None:
-        # Not actually sure whether this returns an instance or the class.
-        # Either way, it does seem to work.
-        # Docs not clear tbh - but would appear to be the class method.
-        # I suppose if it _wasn't_ the class method this approach would not
-        # work because the instance returned by super would only set the
-        # session factory (and engine) for that instance.
         await super().initialise(cfg)
-
         assert cls.engine
         async with cls.engine.begin() as conn:
             await conn.run_sync(orm.Base.metadata.create_all)
