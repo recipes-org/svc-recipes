@@ -19,10 +19,10 @@ watch-type-check:
 
 fmt:
 	poetry run black --preview $(project) tests
-	poetry run flake8 py_loans tests
+	poetry run flake8 $(project) tests
 
 fmt-check:
-	poetry run black --preview --check recipes tests
+	poetry run black --preview --check $(project) tests
 	poetry run flake8 $(project) tests
 
 docs-build:
