@@ -1,9 +1,10 @@
 import logging
+
 from fastapi import APIRouter
 
-import domain
-import services
-import uow
+from recipes import domain
+from recipes import services
+from recipes import uow
 
 logger = logging.getLogger(__name__)
 

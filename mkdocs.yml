@@ -1,0 +1,16 @@
+site_name: Recipes
+
+theme:
+  name: material
+
+watch:
+  - recipes
+  - tests
+
+plugins:
+  - mkdocstrings
+  - search
+
+nav:
+  - index.md
+  - db.md

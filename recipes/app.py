@@ -2,10 +2,10 @@ import logging
 
 from fastapi import FastAPI
 
-import config
-import repository
-import router
-import uow
+from recipes import config
+from recipes import repository
+from recipes import router
+from recipes import uow
 
 logger = logging.getLogger(__name__)
 

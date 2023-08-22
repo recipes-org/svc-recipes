@@ -18,6 +18,8 @@ sqlalchemy = {extras = ["asyncio"], version = "^2.0.20"}
 black = "^23.7.0"
 mypy = "^1.5.1"
 aiosqlite = "^0.19.0"
+mkdocstrings = {extras = ["python"], version = "^0.22.0"}
+mkdocs-material = "^9.2.3"
 
 [build-system]
 requires = ["poetry-core"]

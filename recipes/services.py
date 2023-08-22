@@ -1,7 +1,7 @@
 import logging
 
-import domain
-from uow import UnitOfWork
+from recipes import domain
+from recipes.uow import UnitOfWork
 
 
 logger = logging.getLogger(__name__)

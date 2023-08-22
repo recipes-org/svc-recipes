@@ -1,8 +1,8 @@
-"""Database schema and sesssion factory initialisation.
+"""Database schema and considerations.
 
-### Tables
+## Tables
 
-#### `recipe`
+### `recipe`
 
 | `id` | `name |
 |------|-------|
@@ -23,7 +23,7 @@ No problem with multiple edits because:
 * Not business-critical - no-one, say, loses money if this happens.
 
 
-#### `requirement`
+### `requirement`
 
 | `recipe_id` | `ingredient` | `measurement` | `quantity` |
 |-------------|--------------|---------------|-----------:|
@@ -67,7 +67,7 @@ from sqlalchemy import Float, Column, String, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
 
-import domain
+from recipes import domain
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -107,6 +107,3 @@ class Requirement(Base):
     quantity = Column(Float, nullable=False)
 
     recipe = relationship("Recipe", back_populates="requirements")
-
-
-session_factory: sessionmaker

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Sequence
 import uuid
 
 from pydantic import BaseModel, ConfigDict, NonNegativeFloat
@@ -20,7 +21,7 @@ class RequirementInDB(Requirement):
 
 class Recipe(BaseModel):
     name: str
-    requirements: list[Requirement]
+    requirements: Sequence[Requirement]
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -42,7 +43,7 @@ class Recipe(BaseModel):
 
 class RecipeInDB(Recipe):
     id: str
-    requirements: list[RequirementInDB]
+    requirements: Sequence[RequirementInDB]
 
     model_config = ConfigDict(
         from_attributes=True,

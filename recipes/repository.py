@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import config
-import domain
-import orm
+from recipes import config
+from recipes import domain
+from recipes import orm
 
 
 class Repository(Protocol):
@@ -52,7 +52,7 @@ class SQLAlchemyRepository:
             autocommit=False, autoflush=False, bind=engine
         )
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self.session_factory is None:
             raise RuntimeError(f"{self.__class__.__name__} not initialised.")
         self.session = self.session_factory()
