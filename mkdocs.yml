@@ -14,3 +14,4 @@ plugins:
 nav:
   - index.md
   - db.md
+  - repository.md
