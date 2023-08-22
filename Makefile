@@ -10,17 +10,17 @@ test-coverage:
 	poetry run coverage report -m
 
 type-check:
-	poetry run python -m mypy py_loans tests
+	poetry run python -m mypy recipes tests
 
 watch-type-check:
 	find py_loans tests -name "*.py" | entr make type-check
 
 fmt:
-	poetry run black --preview py_loans tests
+	poetry run black --preview recipes tests
 	poetry run flake8 py_loans tests
 
 fmt-check:
-	poetry run black --preview --check py_loans tests
+	poetry run black --preview --check recipes tests
 	poetry run flake8 py_loans tests
 
 docs-build:
