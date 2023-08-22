@@ -6,6 +6,18 @@ from pydantic import BaseModel, ConfigDict, NonNegativeFloat
 
 
 class Requirement(BaseModel):
+    """Requirement in a [`Recipe`][recipes.domain.Recipe].
+
+    Examples:
+        >>> Requirement(
+        ...     ingredient="carrot",
+        ...     measurement="units",
+        ...     quantity=2,
+        ... )
+        Requirement(ingredient='carrot', measurement='units', quantity=2.0)
+
+    """
+
     ingredient: str
     measurement: str
     quantity: NonNegativeFloat

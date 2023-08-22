@@ -65,7 +65,7 @@ from __future__ import annotations
 
 from sqlalchemy import Float, Column, String, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 from recipes import domain
 
