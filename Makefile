@@ -1,10 +1,8 @@
-project = recipes
-
 test:
 	poetry run python -m pytest
 
 watch-test:
-	find py_loans tests -name "*.py" | entr make test
+	find src tests -name "*.py" | entr make test
 
 test-coverage:
 	poetry run coverage run -m pytest
@@ -12,18 +10,18 @@ test-coverage:
 	poetry run coverage report -m
 
 type-check:
-	poetry run python -m mypy $(project) tests
+	poetry run python -m mypy src tests
 
 watch-type-check:
-	find $(project) tests -name "*.py" | entr make type-check
+	find src tests -name "*.py" | entr make type-check
 
 fmt:
-	poetry run black --preview $(project) tests
-	poetry run flake8 $(project) tests
+	poetry run black --preview src tests
+	poetry run flake8 src tests
 
 fmt-check:
-	poetry run black --preview --check $(project) tests
-	poetry run flake8 $(project) tests
+	poetry run black --preview --check src tests
+	poetry run flake8 src tests
 
 docs-build:
 	poetry run mkdocs build

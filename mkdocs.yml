@@ -4,12 +4,15 @@ theme:
   name: material
 
 watch:
-  - recipes
+  - src
   - tests
 
 plugins:
-  - mkdocstrings
   - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
 
 nav:
   - index.md

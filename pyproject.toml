@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["Sam Thorold <sam.thorold@gmail.com>"]
 readme = "README.md"
+packages = [
+    {"include" = "recipes", from = "src"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -28,6 +31,7 @@ pytest-asyncio = "^0.21.1"
 asgi-lifespan = "^2.1.0"
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 addopts = "--doctest-modules"
 
 [tool.coverage.run]
@@ -37,7 +41,7 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-# fail_under = 100
+fail_under = 90
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
