@@ -15,6 +15,7 @@ async def get_recipes() -> list[domain.RecipeInDB]:
     try:
         return await services.Services().get_recipes()
     except Exception as e:
+        logger.error("%r", e)
         raise HTTPException(500, "Could not get recipes") from e
 
 
@@ -24,6 +25,7 @@ async def create_recipe(recipe: domain.Recipe) -> domain.RecipeInDB:
     try:
         return await services.Services().create_recipe(recipe=recipe)
     except Exception as e:
+        logger.error("%r", e)
         raise HTTPException(500, "Could not create recipe") from e
 
 
@@ -33,4 +35,5 @@ async def get_recipe(recipe_id: str) -> domain.RecipeInDB:
     try:
         return await services.Services().get_recipe(recipe_id=recipe_id)
     except Exception as e:
+        logger.error("%r", e)
         raise HTTPException(500, "Could not get recipe") from e

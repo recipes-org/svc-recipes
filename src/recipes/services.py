@@ -22,23 +22,18 @@ class Services:
     async def get_recipes(self) -> list[domain.RecipeInDB]:
         async with self.unit_of_work() as uow:
             recipes = await uow.recipes.list()
+        logger.info("Got %r recipes", len(recipes))
         return recipes
 
     async def create_recipe(self, recipe: domain.Recipe) -> domain.RecipeInDB:
         async with self.unit_of_work() as uow:
             recipe_in_db = await uow.recipes.add(recipe)
-            try:
-                await uow.commit()
-            except Exception as e:
-                logger.error("Could not create recipe %r %r", recipe, e)
-                raise
+            await uow.commit()
+        logger.info("Created %r", recipe_in_db)
         return recipe_in_db
 
     async def get_recipe(self, recipe_id: str) -> domain.RecipeInDB:
         async with self.unit_of_work() as uow:
-            try:
-                recipe = await uow.recipes.get(recipe_id=recipe_id)
-            except Exception as e:
-                logger.error("Could not retrieve recipe_id %r %r", recipe_id, e)
-                raise
+            recipe = await uow.recipes.get(recipe_id=recipe_id)
+        logger.info("Got %r", recipe)
         return recipe
