@@ -13,16 +13,16 @@ router = APIRouter()
 
 @router.get("/recipes/")
 async def get_recipes() -> list[domain.RecipeInDB]:
-    return await services.get_recipes(uow=uow.SessionUnitOfWork())
+    return await services.Services().get_recipes()
 
 
-@router.post("/recipes/")
+@router.post("/recipes/", status_code=201)
 async def create_recipe(recipe: domain.Recipe) -> domain.RecipeInDB:
     logger.info("recipe=%r", recipe)
-    return await services.create_recipe(uow=uow.SessionUnitOfWork(), recipe=recipe)
+    return await services.Services().create_recipe(recipe=recipe)
 
 
 @router.get("/recipes/{recipe_id}")
 async def get_recipe(recipe_id: str) -> domain.RecipeInDB:
     logger.info("recipe_id=%s", recipe_id)
-    return await services.get_recipe(uow=uow.SessionUnitOfWork(), recipe_id=recipe_id)
+    return await services.Services().get_recipe(recipe_id=recipe_id)

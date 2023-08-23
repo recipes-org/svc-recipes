@@ -54,3 +54,13 @@ class SessionUnitOfWork:
 
     async def rollback(self) -> None:
         await self.recipes.session.rollback()
+
+
+UNIT_OF_WORKS = {"sessionunitofwork": SessionUnitOfWork}
+
+
+def create_unit_of_work(name: str) -> type[UnitOfWork]:
+    name = name.lower()
+    if name not in UNIT_OF_WORKS:
+        raise ValueError(f"Unknown unit of work '{name}'")
+    return UNIT_OF_WORKS[name]

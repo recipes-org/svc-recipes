@@ -77,3 +77,10 @@ class RecipeInDB(Recipe):
                 ],
             }
         )
+
+    def __eq__(self, other: RecipeInDB) -> bool:
+        sdict = self.model_dump()
+        odict = other.model_dump()
+        sdict["requirements"] = sorted(sorted(r.items()) for r in sdict["requirements"])
+        odict["requirements"] = sorted(sorted(r.items()) for r in odict["requirements"])
+        return sdict == odict

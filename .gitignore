@@ -2,4 +2,4 @@ venv
 __pycache__
 pyrightconfig.json
 site
-.coverage
+.coverage*
