@@ -1,3 +1,5 @@
+from typing import Any, AsyncGenerator
+
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from httpx import AsyncClient
@@ -8,7 +10,6 @@ from recipes import domain
 from recipes.app import create_app
 from recipes.config import Config
 from recipes.uow import SessionUnitOfWork, UnitOfWork
-from recipes.repository import Repository
 
 
 @pytest.fixture
@@ -61,7 +62,9 @@ def in_memory_db_app_cannot_commit(
 
 
 @pytest_asyncio.fixture
-async def in_memory_db_app_client(in_memory_db_app: FastAPI):
+async def in_memory_db_app_client(
+    in_memory_db_app: FastAPI,
+) -> AsyncGenerator[AsyncClient, Any]:
     app = in_memory_db_app
     url = "http://test"
     async with AsyncClient(app=app, base_url=url) as client, LifespanManager(app):
@@ -71,7 +74,7 @@ async def in_memory_db_app_client(in_memory_db_app: FastAPI):
 @pytest_asyncio.fixture
 async def in_memory_db_app_cannot_commit_client(
     in_memory_db_app_cannot_commit: FastAPI,
-):
+) -> AsyncGenerator[AsyncClient, Any]:
     app = in_memory_db_app_cannot_commit
     url = "http://test"
     async with AsyncClient(app=app, base_url=url) as client, LifespanManager(app):

@@ -4,7 +4,6 @@ from fastapi import APIRouter
 
 from recipes import domain
 from recipes import services
-from recipes import uow
 
 logger = logging.getLogger(__name__)
 
