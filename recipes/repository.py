@@ -85,3 +85,16 @@ class SQLAlchemyMemoryRepository(SQLAlchemyRepository):
         assert cls.engine
         async with cls.engine.begin() as conn:
             await conn.run_sync(orm.Base.metadata.create_all)
+
+
+REPOSITORIES = {
+    "sqlalchemyrepository": SQLAlchemyRepository,
+    "sqlalchemymemoryrepository": SQLAlchemyMemoryRepository,
+}
+
+
+def create_repository(name: str) -> type[Repository]:
+    name = name.lower()
+    if name not in REPOSITORIES:
+        raise ValueError(f"Unknown repository '{name}'")
+    return REPOSITORIES[name]
