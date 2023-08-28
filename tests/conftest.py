@@ -36,6 +36,7 @@ def in_memory_db_config() -> Generator[Config, Any, Any]:
         recipes_sql_alchemy_database_url="sqlite+aiosqlite://",
     )
     SQLAlchemyMemoryRepository.session_factory = None
+    SessionUnitOfWork.repository_cls = None
 
 
 @pytest.fixture
