@@ -55,3 +55,23 @@ async def test_problem_committing(
     data = recipe_with_requirements.model_dump()
     resp = await in_memory_db_app_cannot_commit_client.post("/recipes/", json=data)
     assert resp.status_code > 400, resp.json()
+
+
+@pytest.mark.asyncio
+async def test_problem_listing(
+    in_memory_db_app_cannot_list_client: AsyncClient,
+) -> None:
+    resp = await in_memory_db_app_cannot_list_client.get("/recipes/")
+    assert resp.status_code > 400, resp.json()
+
+
+@pytest.mark.asyncio
+async def test_problem_getting(
+    in_memory_db_app_cannot_get_client: AsyncClient,
+    recipe_with_requirements: domain.Recipe,
+) -> None:
+    data = recipe_with_requirements.model_dump()
+    resp = await in_memory_db_app_cannot_get_client.post("/recipes/", json=data)
+    got = domain.RecipeInDB.model_validate(resp.json())
+    resp = await in_memory_db_app_cannot_get_client.get(f"/recipes/{got.id}")
+    assert resp.status_code > 400, resp.json()
