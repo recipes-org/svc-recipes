@@ -11,7 +11,6 @@ from recipes.app import create_app
 from recipes.config import Config
 from recipes.repository import (
     Repository,
-    SQLAlchemyRepository,
     SQLAlchemyMemoryRepository,
 )
 from recipes.services import Services
