@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def create_app(
     cfg: config.Config | None = None,
+    repository_cls: type[repository.Repository] | None = None,
     unit_of_work_cls: type[uow.UnitOfWork] | None = None,
 ) -> FastAPI:
     # Idea here is we want the config to be loaded up once, at the same time.
@@ -24,7 +25,11 @@ def create_app(
 
     logger.info(cfg)
 
-    repository_cls = repository.create_repository(cfg.recipes_repository_name)
+    repository_cls = (
+        repository.create_repository(cfg.recipes_repository_name)
+        if repository_cls is None
+        else repository_cls
+    )
     unit_of_work_cls = (
         uow.create_unit_of_work(cfg.recipes_unit_of_work_name)
         if unit_of_work_cls is None
