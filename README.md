@@ -1,20 +1,23 @@
 
-- basically 3 services
+- basically ~~3~~ n services
     - measurements
     - ingredients
     - recipes
     - (users)
+    - (images)
+    - (search)
+    - (suggestions)
+    - (front end(s))
 - users
     - [JWT](https://fastapi.tiangolo.com/tutorial/security/)
     - login with ...
     - [Discussion](https://github.com/tiangolo/fastapi/issues/12)
     - [Tutorial](https://intility.github.io/fastapi-azure-auth/)
     - instagram - source of many recipes
-    
-- hosting
-    - digital ocean
 
 - trace and span IDs
+
+- hosting
 
 ## Things I actually want
 
