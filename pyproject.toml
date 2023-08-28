@@ -37,6 +37,9 @@ addopts = "--doctest-modules"
 [tool.coverage.run]
 parallel = true
 branch = true
+omit = [
+    "tests/*",
+]
 
 [tool.coverage.report]
 show_missing = true
