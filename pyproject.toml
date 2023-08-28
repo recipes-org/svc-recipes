@@ -29,6 +29,7 @@ httpx = "^0.24.1"
 anyio = "^3.7.1"
 pytest-asyncio = "^0.21.1"
 asgi-lifespan = "^2.1.0"
+gevent = "^23.7.0"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -40,6 +41,7 @@ branch = true
 omit = [
     "tests/*",
 ]
+concurrency = ["gevent"]
 
 [tool.coverage.report]
 show_missing = true
