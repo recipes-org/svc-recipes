@@ -1,4 +1,4 @@
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Generator
 
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
@@ -9,6 +9,7 @@ import pytest_asyncio
 from recipes import domain
 from recipes.app import create_app
 from recipes.config import Config
+from recipes.repository import SQLAlchemyRepository, SQLAlchemyMemoryRepository
 from recipes.uow import SessionUnitOfWork, UnitOfWork
 
 
@@ -29,11 +30,12 @@ def recipe_with_requirements(recipe: domain.Recipe) -> domain.Recipe:
 
 
 @pytest.fixture
-def in_memory_db_config() -> Config:
-    return Config(
+def in_memory_db_config() -> Generator[Config, Any, Any]:
+    yield Config(
         recipes_repository_name="SQLAlchemyMemoryRepository",
         recipes_sql_alchemy_database_url="sqlite+aiosqlite://",
     )
+    SQLAlchemyMemoryRepository.session_factory = None
 
 
 @pytest.fixture
