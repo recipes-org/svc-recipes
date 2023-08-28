@@ -9,7 +9,11 @@ import pytest_asyncio
 from recipes import domain
 from recipes.app import create_app
 from recipes.config import Config
-from recipes.repository import SQLAlchemyRepository, SQLAlchemyMemoryRepository
+from recipes.repository import (
+    Repository,
+    SQLAlchemyRepository,
+    SQLAlchemyMemoryRepository,
+)
 from recipes.uow import SessionUnitOfWork, UnitOfWork
 
 
