@@ -1,35 +1,26 @@
 arg PYTHON_VERSION=3.11
 
-from python:$PYTHON_VERSION-slim as build
+# OS packages + poetry
+from python:$PYTHON_VERSION-slim
 
 run apt-get update && apt-get upgrade -y && apt-get install curl -y
 
-arg POETRY_HOME=/build
+arg APP_DIR=/app
 arg POETRY_VERSION=1.6.1
 env POETRY_VERSION=$POETRY_VERSION
-env POETRY_HOME=$POETRY_HOME
+env POETRY_HOME=$APP_DIR
 
-workdir $POETRY_HOME
+workdir $APP_DIR
 
-# install poetry
 run curl -sSL https://install.python-poetry.org | python3 -
 run bin/poetry config virtualenvs.in-project true
 
-from build as install
+copy pyproject.toml poetry.lock .
+run bin/poetry install --no-root --compile --no-cache
 
-workdir /app
+copy README.md .
+copy src src
+run bin/poetry install --only-root --compile --no-cache
 
-copy --from=build $POETRY_HOME .
-
-copy . .
-
-# install package
-run bin/poetry install --without dev --compile --no-cache
-
-from install
-
-workdir /app
-
-copy --from=install $POETRY_HOME .
-
-cmd bin/poetry run uvicorn main:app --host "0.0.0.0" --port 8001
+copy main.py .
+cmd bin/poetry run uvicorn main:app --host $RECIPES_HOST --port $RECIPES_PORT
