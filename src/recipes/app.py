@@ -16,6 +16,19 @@ def create_app(
     repository_cls: type[repository.Repository] | None = None,
     unit_of_work_cls: type[uow.UnitOfWork] | None = None,
 ) -> FastAPI:
+    """App factory.
+
+    Initialise repository, unit-of-work, and services according to the config.
+
+    Arguments:
+        cfg: Configuration for the app.
+        repository_cls: Repository class to use for the app. For testing.
+        unit_of_work_cls: Unit of work class to use for the app. For testing.
+
+    Examples:
+        >>> app = create_app()
+
+    """
     # Idea here is we want the config to be loaded up once, at the same time.
     # I.e., import config only appears in this file.
     cfg = config.Config() if cfg is None else cfg
