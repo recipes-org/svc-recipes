@@ -26,5 +26,4 @@ jobs:
       - run: make test-coverage
       - name: Build and tag image
         run: |
-          COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          docker build -t ${{ github.repository }}:$COMMIT_SHA
+          docker build -t ${{ github.repository }}:$GITHUB_SHA .
