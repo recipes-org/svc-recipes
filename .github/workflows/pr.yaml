@@ -24,3 +24,6 @@ jobs:
       - run: make docs-build
       - run: make type-check
       - run: make test-coverage
+      - name: Build and tag image
+        COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+        run: docker build -t ${{ github.repository }}:$COMMIT_SHA
