@@ -11,7 +11,7 @@ from recipes.app import create_app
 from recipes.config import Config
 from recipes.repository import (
     Repository,
-    SQLAlchemyMemoryRepository,
+    SQLAlchemyRepository,
 )
 from recipes.services import Services
 from recipes.uow import SessionUnitOfWork, UnitOfWork
@@ -36,10 +36,11 @@ def recipe_with_requirements(recipe: domain.Recipe) -> domain.Recipe:
 @pytest.fixture
 def in_memory_db_config() -> Generator[Config, Any, Any]:
     yield Config(
-        recipes_repository_name="SQLAlchemyMemoryRepository",
+        recipes_repository_name="SQLAlchemyRepository",
         recipes_sql_alchemy_database_url="sqlite+aiosqlite://",
+        recipes_sql_alchemy_database_create=True,
     )
-    SQLAlchemyMemoryRepository.session_factory = None
+    SQLAlchemyRepository.session_factory = None
     SessionUnitOfWork.repository_cls = None
     Services.unit_of_work_cls = None
 
@@ -55,20 +56,20 @@ def unit_of_work_cannot_commit() -> type[UnitOfWork]:
 
 @pytest.fixture
 def repository_cannot_list() -> type[Repository]:
-    class SQLAlchemyMemoryRepositoryCannotList(SQLAlchemyMemoryRepository):
+    class SQLAlchemyRepositoryCannotList(SQLAlchemyRepository):
         async def list(self) -> list[domain.RecipeInDB]:
             raise ValueError(":(")
 
-    return SQLAlchemyMemoryRepositoryCannotList
+    return SQLAlchemyRepositoryCannotList
 
 
 @pytest.fixture
 def repository_cannot_get() -> type[Repository]:
-    class SQLAlchemyMemoryRepositoryCannotGet(SQLAlchemyMemoryRepository):
+    class SQLAlchemyRepositoryCannotGet(SQLAlchemyRepository):
         async def get(self, recipe_id: str) -> domain.RecipeInDB:
             raise ValueError(":(")
 
-    return SQLAlchemyMemoryRepositoryCannotGet
+    return SQLAlchemyRepositoryCannotGet
 
 
 @pytest.fixture
