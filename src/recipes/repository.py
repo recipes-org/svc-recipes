@@ -51,6 +51,10 @@ class SQLAlchemyRepository:
         cls.session_factory = async_sessionmaker(
             autocommit=False, autoflush=False, bind=engine
         )
+        if cfg.recipes_sql_alchemy_database_create:
+            assert cls.engine
+            async with cls.engine.begin() as conn:
+                await conn.run_sync(orm.Base.metadata.create_all)
 
     def __init__(self) -> None:
         if self.session_factory is None:
@@ -78,18 +82,8 @@ class SQLAlchemyRepository:
         return [domain.RecipeInDB.model_validate(o) for o in orm_recipes]
 
 
-class SQLAlchemyMemoryRepository(SQLAlchemyRepository):
-    @classmethod
-    async def initialise(cls, cfg: config.Config) -> None:
-        await super().initialise(cfg)
-        assert cls.engine
-        async with cls.engine.begin() as conn:
-            await conn.run_sync(orm.Base.metadata.create_all)
-
-
 REPOSITORIES = {
     "sqlalchemyrepository": SQLAlchemyRepository,
-    "sqlalchemymemoryrepository": SQLAlchemyMemoryRepository,
 }
 
 
