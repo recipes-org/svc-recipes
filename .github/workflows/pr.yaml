@@ -17,12 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
-          echo "IMAGE_NAME=${{ github.repository }}:$SHA_SHORT" >> "$GITHUB_ENV"
-          echo "FULLY_QUALIFIED_IMAGE_NAME=$RECIPES_CR$IMAGE_NAME" >> "$GITHUB_ENV"
-          echo ${{ env.SHA_SHORT }}
-          echo ${{ env.IMAGE_NAME }}
-          echo ${{ env.FULLY_QUALIFIED_IMAGE_NAME }}
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_ENV"
+          echo "fully_qualified_image_name=$RECIPES_CR${{ env.image_name }}" >> "$GITHUB_ENV"
         shell: bash
 
 
@@ -52,12 +49,12 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           context: .
-          tags: ${{ env.IMAGE_NAME }}
-          outputs: type=docker,dest=/tmp/${{ env.IMAGE_NAME }}.tar
+          tags: ${{ env.image_name }}
+          outputs: type=docker,dest=/tmp/${{ env.image_name }}.tar
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.IMAGE_NAME }}
-          path: /tmp/${{ env.IMAGE_NAME }}.tar
+          name: ${{ env.image_name }}
+          path: /tmp/${{ env.image_name }}.tar
 
   push-image:
     name: Push image
@@ -66,12 +63,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ env.IMAGE_NAME }}
+          name: ${{ env.image_name }}
           path: /tmp
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
-      - run: docker load --input /tmp/$IMAGE_NAME.tar
-      - run: docker tag $IMAGE_NAME $FULLY_QUALIFIED_IMAGE_NAME
-      - run: docker push $FULLY_QUALIFIED_IMAGE_NAME
+      - run: docker load --input /tmp/$image_name.tar
+      - run: docker tag $image_name $fully_qualified_image_name
+      - run: docker push $fully_qualified_image_name
