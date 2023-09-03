@@ -8,9 +8,10 @@ on:
 
 env:
   FORCE_COLOR: "1" # Make tools pretty.
+  IMAGE_NAME: ${{ github.repository }}:$GITHUB_SHA
 
 jobs:
-  pr-code-checks:
+  code-checks:
     name: PR Code Checks
     runs-on: ubuntu-latest
     steps:
@@ -24,10 +25,35 @@ jobs:
       - run: make docs-build
       - run: make type-check
       - run: make test-coverage
-      - run: docker build -t ${{ github.repository }}:$GITHUB_SHA .
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+
+  build-image:
+    name: Build image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/build-push-action@v4
+        with:
+          context: .
+          tags: $IMAGE_NAME
+          outputs: type=docker,dest=/tmp/$IMAGE_NAME.tar
+      - uses: actions/upload-artifact@v3
+        with:
+          name: 
+          path: /tmp/$IMAGE_NAME.tar
+
+  push-image:
+    name: Push image
+    runs-on: ubuntu-latest
+    needs: [code-checks, build-image]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: $IMAGE_NAME.tar
+          path: /tmp
+      - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
-      - run: docker push registry.digitalocean.com/recipes/${{ github.repository }}:$GITHUB_SHA
+      - run: docker load --input /tmp/$IMAGE_NAME.tar
+      - run: docker tag $IMAGE_NAME $RECIPES_CR$IMAGE_NAME
+      - run: docker push $RECIPES_CR$IMAGE_NAME
