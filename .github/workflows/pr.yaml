@@ -25,3 +25,9 @@ jobs:
       - run: make type-check
       - run: make test-coverage
       - run: docker build -t ${{ github.repository }}:$GITHUB_SHA .
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_CI }}
+      - run: doctl registry login
+      - run: docker push registry.digitalocean.com/recipes/${{ github.repository }}:$GITHUB_SHA
