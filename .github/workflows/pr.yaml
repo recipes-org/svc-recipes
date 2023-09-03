@@ -16,17 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      image_name: ${{ steps.vars.outputs.image_name }}
     steps:
       - uses: actions/checkout@v3
       - id: vars 
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          echo "image_name=$RECIPES_CR${{ github.repository }}" >> "$GITHUB_OUTPUT"
-      - run: echo "$sha_short $image_name"
+      - run: echo "$sha_short"
         env:
           sha_short: ${{ steps.vars.outputs.sha_short }}
-          image_name: ${{ steps.vars.outputs.image_name }}
 
   code-checks:
     name: Code Checks
@@ -63,7 +60,6 @@ jobs:
     needs: [vars, code-checks, build-image]
     env:
       sha_short: ${{ needs.vars.outputs.sha_short }}
-      image_name: ${{ needs.vars.outputs.image_name }}
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -74,7 +70,8 @@ jobs:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
       - run: docker load --input /tmp/image.tar
+      - run: echo "image_name=$RECIPES_CR${{ github.repository }}" >> "$GITHUB_ENV"
       - run: echo $image_name:$sha_short
-      - run: echo docker image ls
+      - run: echo docker image ls -a
       - run: docker tag $(docker image ls --format "{{ .ID }}") $image_name:$sha_short 
       - run: docker push $image_name:$sha_short
