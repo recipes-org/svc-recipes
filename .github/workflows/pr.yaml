@@ -49,7 +49,7 @@ jobs:
     needs: vars
     env:
       sha_short: ${{ needs.vars.outputs.sha_short }}
-      image_name: ${{ steps.vars.outputs.image_name }}
+      image_name: ${{ needs.vars.outputs.image_name }}
     steps:
       - uses: actions/checkout@v3
       - run: docker build -t $image_name:$sha_short .
@@ -65,7 +65,7 @@ jobs:
     needs: [vars, code-checks, build-image]
     env:
       sha_short: ${{ needs.vars.outputs.sha_short }}
-      image_name: ${{ steps.vars.outputs.image_name }}
+      image_name: ${{ needs.vars.outputs.image_name }}
     steps:
       - uses: actions/download-artifact@v3
         with:
