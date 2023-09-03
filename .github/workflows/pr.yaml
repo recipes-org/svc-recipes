@@ -21,6 +21,8 @@ jobs:
           echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_ENV"
           echo "fully_qualified_image_name=$RECIPES_CR${{ env.image_name }}" >> "$GITHUB_ENV"
         shell: bash
+      - run: |
+          printf '%s\n' "$image_name"
 
 
   code-checks:
