@@ -8,7 +8,9 @@ on:
 
 env:
   FORCE_COLOR: "1" # Make tools pretty.
-  IMAGE_NAME: ${{ github.repository }}:$GITHUB_SHA
+  IMAGE_NAME: ${{ github.repository }}:${{ env.GITHUB_SHA }}
+  FULLY_QUALIFIED_IMAGE_NAME: ${{ env.RECIPES_CR }}${{ env.IMAGE_NAME }}
+  POETRY_VERSION: "1.6.1"
 
 jobs:
   code-checks:
@@ -19,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
       - run: poetry install
       - run: make fmt-check
       - run: make docs-build
@@ -55,5 +57,5 @@ jobs:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
       - run: docker load --input /tmp/$IMAGE_NAME.tar
-      - run: docker tag $IMAGE_NAME $RECIPES_CR$IMAGE_NAME
-      - run: docker push $RECIPES_CR$IMAGE_NAME
+      - run: docker tag $IMAGE_NAME $FULLY_QUALIFIED_IMAGE_NAME
+      - run: docker push $FULLY_QUALIFIED_IMAGE_NAME
