@@ -16,13 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
-          echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_ENV"
-          echo "fully_qualified_image_name=$RECIPES_CR${{ env.image_name }}" >> "$GITHUB_ENV"
-        shell: bash
-      - run: |
-          printf '%s\n' "$image_name"
+      - run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+      - run: echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_ENV"
+      - run: echo "fully_qualified_image_name=$RECIPES_CR${{ env.image_name }}" >> "$GITHUB_ENV"
+      - run: printf '%s\n' "$image_name"
 
 
   code-checks:
