@@ -7,9 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_COLOR: "1" # Make tools pretty.
-  IMAGE_NAME: ${{ github.repository }}:${{ env.GITHUB_SHA }}
-  FULLY_QUALIFIED_IMAGE_NAME: ${{ env.RECIPES_CR }}${{ env.IMAGE_NAME }}
+  FORCE_COLOR: "1"
   POETRY_VERSION: "1.6.1"
 
 jobs:
@@ -31,6 +29,8 @@ jobs:
   build-image:
     name: Build image
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ${{ github.repository }}:${{ env.GITHUB_SHA }}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/build-push-action@v4
@@ -47,6 +47,9 @@ jobs:
     name: Push image
     runs-on: ubuntu-latest
     needs: [code-checks, build-image]
+    env:
+      IMAGE_NAME: ${{ github.repository }}:${{ env.GITHUB_SHA }}
+      FULLY_QUALIFIED_IMAGE_NAME: ${{ env.RECIPES_CR }}${{ env.IMAGE_NAME }}
     steps:
       - uses: actions/download-artifact@v3
         with:
