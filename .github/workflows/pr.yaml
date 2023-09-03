@@ -23,6 +23,7 @@ jobs:
           echo $SHA_SHORT
           echo $IMAGE_NAME
           echo $FULLY_QUALIFIED_IMAGE_NAME
+        shell: bash
 
 
   code-checks:
