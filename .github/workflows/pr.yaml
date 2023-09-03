@@ -40,7 +40,7 @@ jobs:
           outputs: type=docker,dest=/tmp/${{ env.IMAGE_NAME }}.tar
       - uses: actions/upload-artifact@v3
         with:
-          name: 
+          name: ${{ env.IMAGE_NAME }}
           path: /tmp/${{ env.IMAGE_NAME }}.tar
 
   push-image:
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ env.IMAGE_NAME }}.tar
+          name: ${{ env.IMAGE_NAME }}
           path: /tmp
       - uses: digitalocean/action-doctl@v2
         with:
