@@ -7,25 +7,28 @@ on:
   workflow_dispatch:
 
 env:
-  image_path: /tmp/image.tar
+  FORCE_COLOR: ${{ vars.FORCE_COLOR }}
+  POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
+  CR: ${{ vars.RECIPES_CR}}
+  IMAGE_PATH: /tmp/image.tar
 
 jobs:
   vars:
     name: Variables
     runs-on: ubuntu-latest
     outputs:
-      sha_short: ${{ steps.vars.outputs.sha_short }}
-      image_name: ${{ steps.vars.outputs.image_name }}
+      SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/checkout@v3
       - id: vars 
         run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          echo "image_name=${{ env.RECIPES_CR }}${{ github.repository }}" >> "$GITHUB_OUTPUT"
-      - run: echo "$image_name:$sha_short"
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_NAME=${{ env.CR }}${{ github.repository }}" >> "$GITHUB_OUTPUT"
+      - run: echo "$IMAGE_NAME:$SHA_SHORT"
         env:
-          sha_short: ${{ steps.vars.outputs.sha_short }}
-          image_name: ${{ steps.vars.outputs.image_name }}
+          SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
+          IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
 
   code-checks:
     name: Code Checks
@@ -36,7 +39,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - run: curl -sSL https://install.python-poetry.org | python3 - --version $RECIPES_POETRY_VERSION
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
       - run: poetry install
       - run: make fmt-check
       - run: make docs-build
@@ -48,24 +51,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: vars
     env:
-      sha_short: ${{ needs.vars.outputs.sha_short }}
-      image_name: ${{ needs.vars.outputs.image_name }}
+      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/checkout@v3
-      - run: docker build -t $image_name:$sha_short .
-      - run: docker save $image_name -o $image_path
+      - run: docker build -t $IMAGE_NAME:$SHA_SHORT .
+      - run: docker save $IMAGE_NAME -o $IMAGE_PATH
       - uses: actions/upload-artifact@v3
         with:
           name: image
-          path: ${{ env.image_path }}
+          path: ${{ env.IMAGE_PATH }}
 
   push-image:
     name: Push image
     runs-on: ubuntu-latest
     needs: [vars, code-checks, build-image]
     env:
-      sha_short: ${{ needs.vars.outputs.sha_short }}
-      image_name: ${{ needs.vars.outputs.image_name }}
+      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -75,7 +78,7 @@ jobs:
         with:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
-      - run: docker load --input $image_path
-      - run: echo $image_name:$sha_short
+      - run: docker load --input $IMAGE_PATH
+      - run: echo $IMAGE_NAME:$SHA_SHORT
       - run: echo docker image ls -a
-      - run: docker push $image_name:$sha_short
+      - run: docker push $IMAGE_NAME:$SHA_SHORT
