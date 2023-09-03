@@ -26,8 +26,8 @@ jobs:
           echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
       - id: image_name
         run: |
-          echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_OUTPUT"
-          echo "image_name=${{ github.repository }}:${{ env.sha_short }}" >> "$GITHUB_ENV"
+          echo "image_name=${{ github.repository }}" >> "$GITHUB_OUTPUT"
+          echo "image_name=${{ github.repository }}" >> "$GITHUB_ENV"
       - id: fully_qualified_image_name
         run: echo "fully_qualified_image_name=$RECIPES_CR${{ env.image_name }}" >> "$GITHUB_OUTPUT"
 
@@ -53,10 +53,11 @@ jobs:
     needs: vars
     env:
       image_name: ${{ needs.vars.outputs.image_name }}
+      sha_short: ${{ needs.vars.outputs.sha_short}}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
-      - run: docker buildx build -o type=docker,dest=- . > /tmp/myimage.tar
+      - run: docker buildx build -t $image_name:$sha_short -o type=docker,dest=- . > /tmp/${{ env.image_name }}.tar
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.image_name }}
@@ -68,6 +69,7 @@ jobs:
     needs: [code-checks, build-image]
     env:
       image_name: ${{ needs.vars.outputs.image_name }}
+      sha_short: ${{ needs.vars.outputs.sha_short}}
       fully_qualified_image_name: ${{ needs.vars.outputs.fully_qualified_image_name }}
     steps:
       - uses: actions/download-artifact@v3
@@ -79,5 +81,5 @@ jobs:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
       - run: docker load --input /tmp/$image_name.tar
-      - run: docker tag $image_name $fully_qualified_image_name
-      - run: docker push $fully_qualified_image_name
+      - run: docker tag $image_name:$sha_short $fully_qualified_image_name:$sha_short 
+      - run: docker push $fully_qualified_image_name:$sha_short
