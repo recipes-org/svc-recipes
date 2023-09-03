@@ -52,7 +52,6 @@ class SQLAlchemyRepository:
             autocommit=False, autoflush=False, bind=engine
         )
         if cfg.recipes_sql_alchemy_database_create:
-            assert cls.engine
             async with cls.engine.begin() as conn:
                 await conn.run_sync(orm.Base.metadata.create_all)
 

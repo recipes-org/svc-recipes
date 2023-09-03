@@ -7,21 +7,78 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_COLOR: "1" # Make tools pretty.
+  FORCE_COLOR: ${{ vars.FORCE_COLOR }}
+  POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
+  CR: ${{ vars.RECIPES_CR}}
+  IMAGE_PATH: /tmp/image.tar
 
 jobs:
-  pr-code-checks:
-    name: PR Code Checks
+  vars:
+    name: Variables
     runs-on: ubuntu-latest
+    outputs:
+      SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: vars 
+        run: |
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_NAME=${{ env.CR }}${{ github.repository }}" >> "$GITHUB_OUTPUT"
+      - run: echo "$IMAGE_NAME:$SHA_SHORT"
+        env:
+          SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
+          IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
+
+  code-checks:
+    name: Code Checks
+    runs-on: ubuntu-latest
+    needs: vars
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
       - run: poetry install
       - run: make fmt-check
       - run: make docs-build
       - run: make type-check
       - run: make test-coverage
-      - run: docker build -t ${{ github.repository }}:$GITHUB_SHA .
+
+  build-image:
+    name: Build image
+    runs-on: ubuntu-latest
+    needs: vars
+    env:
+      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: docker build -t $IMAGE_NAME:$SHA_SHORT .
+      - run: docker save $IMAGE_NAME -o $IMAGE_PATH
+      - uses: actions/upload-artifact@v3
+        with:
+          name: image
+          path: ${{ env.IMAGE_PATH }}
+
+  push-image:
+    name: Push image
+    runs-on: ubuntu-latest
+    needs: [vars, code-checks, build-image]
+    env:
+      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: image
+          path: /tmp
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_CI }}
+      - run: doctl registry login
+      - run: docker load --input $IMAGE_PATH
+      - run: echo $IMAGE_NAME:$SHA_SHORT
+      - run: echo docker image ls -a
+      - run: docker push $IMAGE_NAME:$SHA_SHORT
