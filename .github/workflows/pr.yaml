@@ -12,7 +12,7 @@ env:
 
 jobs:
   code-checks:
-    name: PR Code Checks
+    name: Code Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,12 +34,12 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           context: .
-          tags: $IMAGE_NAME
-          outputs: type=docker,dest=/tmp/$IMAGE_NAME.tar
+          tags: ${{ env.IMAGE_NAME }}
+          outputs: type=docker,dest=/tmp/${{ env.IMAGE_NAME }}.tar
       - uses: actions/upload-artifact@v3
         with:
           name: 
-          path: /tmp/$IMAGE_NAME.tar
+          path: /tmp/${{ env.IMAGE_NAME }}.tar
 
   push-image:
     name: Push image
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: $IMAGE_NAME.tar
+          name: ${{ env.IMAGE_NAME }}.tar
           path: /tmp
       - uses: digitalocean/action-doctl@v2
         with:
