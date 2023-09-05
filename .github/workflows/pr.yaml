@@ -12,7 +12,6 @@ env:
   POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
   CR: ${{ vars.RECIPES_CR}}
   IMAGE_PATH: /tmp/image.tar
-  POETRY_HOME: /tmp/
 
 jobs:
   vars:
@@ -24,7 +23,7 @@ jobs:
       VERSION: ${{ steps.vars.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v3
-      - run: pipx install poetry
+      - run: pipx install poetry==$POETRY_VERSION
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
@@ -45,7 +44,7 @@ jobs:
     needs: vars
     steps:
       - uses: actions/checkout@v3
-      - run: pipx install poetry
+      - run: pipx install poetry==$VERSION
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
