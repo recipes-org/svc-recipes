@@ -44,7 +44,7 @@ jobs:
     needs: vars
     steps:
       - uses: actions/checkout@v3
-      - run: pipx install poetry==$VERSION
+      - run: pipx install poetry==$POETRY_VERSION
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
