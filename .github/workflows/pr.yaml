@@ -64,7 +64,7 @@ jobs:
       IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/checkout@v3
-      - run: docker build --build-arg="RECIPES_SQL_ALCHEMY_DATABASE_URL=${{ secrets.RECIPES_SQL_ALCHEMY_DATABASE_URL }}" --build-arg "RECIPES_SQL_ALCHEMY_DATABASE_CREATE=${{ secrets.RECIPES_SQL_ALCHEMY_DATABASE_CREATE }}" -t $IMAGE_NAME:$VERSION .
+      - run: docker build --build-arg="RECIPES_SQL_ALCHEMY_DATABASE_URL=${{ secrets.RECIPES_SQL_ALCHEMY_DATABASE_URL }}" --build-arg "RECIPES_SQL_ALCHEMY_DATABASE_CREATE=${{ vars.RECIPES_SQL_ALCHEMY_DATABASE_CREATE }}" -t $IMAGE_NAME:$VERSION .
       - run: docker save $IMAGE_NAME -o $IMAGE_PATH
       - uses: actions/upload-artifact@v3
         with:
