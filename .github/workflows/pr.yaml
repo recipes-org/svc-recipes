@@ -3,14 +3,16 @@ name: PR
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
   workflow_dispatch:
+
 
 env:
   FORCE_COLOR: ${{ vars.FORCE_COLOR }}
   POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
   CR: ${{ vars.RECIPES_CR}}
   IMAGE_PATH: /tmp/image.tar
+  POETRY_HOME: /tmp/
 
 jobs:
   vars:
@@ -19,15 +21,22 @@ jobs:
     outputs:
       SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
       IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
+      VERSION: ${{ steps.vars.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v3
-      - id: vars 
+      - run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - id: vars
         run: |
           echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$(poetry version -s)" >> "$GITHUB_OUTPUT"
           echo "IMAGE_NAME=${{ env.CR }}${{ github.repository }}" >> "$GITHUB_OUTPUT"
-      - run: echo "$IMAGE_NAME:$SHA_SHORT"
+      - run: echo "$IMAGE_NAME:$VERSION"
         env:
-          SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
+          VERSION: ${{ steps.vars.outputs.VERSION}}
           IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
 
   code-checks:
@@ -36,10 +45,11 @@ jobs:
     needs: vars
     steps:
       - uses: actions/checkout@v3
+      - run: pipx install poetry
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - run: curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
+          cache: "poetry"
       - run: poetry install
       - run: make fmt-check
       - run: make docs-build
@@ -51,11 +61,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: vars
     env:
-      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      VERSION: ${{ needs.vars.outputs.VERSION}}
       IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/checkout@v3
-      - run: docker build -t $IMAGE_NAME:$SHA_SHORT .
+      - run: docker build -t $IMAGE_NAME:$VERSION.
       - run: docker save $IMAGE_NAME -o $IMAGE_PATH
       - uses: actions/upload-artifact@v3
         with:
@@ -65,9 +75,9 @@ jobs:
   push-image:
     name: Push image
     runs-on: ubuntu-latest
-    needs: [vars, code-checks, build-image]
+    needs: [ vars, code-checks, build-image ]
     env:
-      SHA_SHORT: ${{ needs.vars.outputs.SHA_SHORT }}
+      VERSION: ${{ needs.vars.outputs.VERSION}}
       IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
       - uses: actions/download-artifact@v3
@@ -79,6 +89,6 @@ jobs:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
       - run: docker load --input $IMAGE_PATH
-      - run: echo $IMAGE_NAME:$SHA_SHORT
+      - run: echo $IMAGE_NAME:$VERSION
       - run: echo docker image ls -a
-      - run: docker push $IMAGE_NAME:$SHA_SHORT
+      - run: docker push $IMAGE_NAME:$VERSION
