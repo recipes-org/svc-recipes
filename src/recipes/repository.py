@@ -1,17 +1,15 @@
 from typing import Protocol
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.orm import selectinload
 
-from recipes import config
-from recipes import domain
-from recipes import orm
+from recipes import config, domain, orm
 
 
 class Repository(Protocol):
@@ -42,9 +40,15 @@ class SQLAlchemyRepository:
 
     @classmethod
     async def initialise(cls, cfg: config.Config) -> None:
+        kwargs = (
+            {"check_same_thread": False}
+            if "sqlite" in cfg.recipes_sql_alchemy_database_url.lower()
+            else {}
+        )
         engine = create_async_engine(
             cfg.recipes_sql_alchemy_database_url,
-            connect_args={"check_same_thread": False},
+            connect_args=kwargs,
+            echo=cfg.recipes_debug,
         )
 
         cls.engine = engine

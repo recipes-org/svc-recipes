@@ -63,23 +63,25 @@ So save a join and take the hit on some duplicated data.
 
 from __future__ import annotations
 
-from sqlalchemy import Float, Column, String, ForeignKey
+from sqlalchemy import Float, MetaData, String, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, mapped_column, relationship
 
 from recipes import domain
 
 
+metadata_obj = MetaData(schema="recipes")
+
+
 class Base(AsyncAttrs, DeclarativeBase):
-    pass
+    metadata = metadata_obj
 
 
 class Recipe(Base):
-    __tablename__ = "recipe"
+    __tablename__ = "recipes"
 
-    id = Column(String(255), primary_key=True)
-    name = Column(String(255), nullable=False)
-    # version = Column(Integer, nullable=False, server_default="0")
+    id = mapped_column(String(255), primary_key=True)
+    name = mapped_column(String(255), nullable=False)
 
     requirements = relationship("Requirement", back_populates="recipe")
 
@@ -99,11 +101,11 @@ class Recipe(Base):
 
 
 class Requirement(Base):
-    __tablename__ = "requirement"
+    __tablename__ = "requirements"
 
-    recipe_id = Column(String(255), ForeignKey("recipe.id"), primary_key=True)
-    ingredient = Column(String(255), primary_key=True)
-    measurement = Column(String(255), nullable=False)
-    quantity = Column(Float, nullable=False)
+    recipe_id = mapped_column(String(255), ForeignKey("recipes.id"), primary_key=True)
+    ingredient = mapped_column(String(255), primary_key=True)
+    measurement = mapped_column(String(255), nullable=False)
+    quantity = mapped_column(Float, nullable=False)
 
     recipe = relationship("Recipe", back_populates="requirements")
