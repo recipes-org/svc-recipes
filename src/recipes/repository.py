@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
@@ -19,17 +19,13 @@ class Repository(Protocol):
     session: AsyncSession
 
     @classmethod
-    async def initialise(cls, cfg: config.Config) -> None:
-        ...
+    async def initialise(cls, cfg: config.Config) -> None: ...
 
-    async def add(self, recipe: domain.Recipe) -> domain.RecipeInDB:
-        ...
+    async def add(self, recipe: domain.Recipe) -> domain.RecipeInDB: ...
 
-    async def get(self, recipe_id: str) -> domain.RecipeInDB:
-        ...
+    async def get(self, recipe_id: str) -> domain.RecipeInDB: ...
 
-    async def list(self) -> list[domain.RecipeInDB]:
-        ...
+    async def list(self) -> list[domain.RecipeInDB]: ...
 
 
 class SQLAlchemyRepository:
@@ -40,11 +36,9 @@ class SQLAlchemyRepository:
 
     @classmethod
     async def initialise(cls, cfg: config.Config) -> None:
-        kwargs = (
-            {"check_same_thread": False}
-            if "sqlite" in cfg.recipes_sql_alchemy_database_url.lower()
-            else {}
-        )
+        kwargs: dict[str, Any] = {}
+        if "sqlite" in cfg.recipes_sql_alchemy_database_url.lower():  # pragma: no cover
+            kwargs = kwargs | {"check_same_thread": False}
         engine = create_async_engine(
             cfg.recipes_sql_alchemy_database_url,
             connect_args=kwargs,

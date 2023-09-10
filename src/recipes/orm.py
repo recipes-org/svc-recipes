@@ -62,6 +62,7 @@ So save a join and take the hit on some duplicated data.
 """
 
 from __future__ import annotations
+import os
 
 from sqlalchemy import Float, MetaData, String, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -70,7 +71,7 @@ from sqlalchemy.orm import DeclarativeBase, mapped_column, relationship
 from recipes import domain
 
 
-metadata_obj = MetaData(schema="recipes")
+metadata_obj = MetaData(schema=os.environ.get("RECIPES_SCHEMA_NAME"))
 
 
 class Base(AsyncAttrs, DeclarativeBase):
