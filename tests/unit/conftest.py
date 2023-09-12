@@ -37,7 +37,7 @@ def recipe_with_requirements(recipe: domain.Recipe) -> domain.Recipe:
 def in_memory_db_config() -> Generator[Config, Any, Any]:
     yield Config(
         recipes_repository_name="SQLAlchemyRepository",
-        recipes_sql_alchemy_database_url="sqlite+aiosqlite://",
+        database_url="sqlite+aiosqlite://",
         recipes_sql_alchemy_database_create=True,
     )
     SQLAlchemyRepository.session_factory = None

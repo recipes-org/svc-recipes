@@ -37,10 +37,10 @@ class SQLAlchemyRepository:
     @classmethod
     async def initialise(cls, cfg: config.Config) -> None:
         kwargs: dict[str, Any] = {}
-        if "sqlite" in cfg.recipes_sql_alchemy_database_url.lower():  # pragma: no cover
+        if "sqlite" in cfg.database_url.lower():  # pragma: no cover
             kwargs = kwargs | {"check_same_thread": False}
         engine = create_async_engine(
-            cfg.recipes_sql_alchemy_database_url,
+            cfg.database_url,
             connect_args=kwargs,
             echo=cfg.recipes_debug,
         )
