@@ -19,6 +19,13 @@ class Config(BaseSettings):
             driver = "postgresql+asyncpg"
         return ":".join([driver] + parts)
 
+    @field_validator("database_url")
+    @classmethod
+    def database_url_replace_sslmode(cls, v: str) -> str:
+        if v.lower().startswith("postgresql"):
+            v = v.replace("sslmode=", "ssl=")
+        return v
+
     def log_safe_model_dump(self) -> dict[str, Any]:
         return {
             k: v for k, v in self.model_dump().items() if not k.endswith("database_url")
