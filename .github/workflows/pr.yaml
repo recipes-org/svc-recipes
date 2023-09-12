@@ -11,8 +11,8 @@ env:
   FORCE_COLOR: ${{ vars.FORCE_COLOR }}
   POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
   CR: ${{ vars.RECIPES_CR}}
-  IMAGE_PATH: /tmp/image.tar
-
+  RECIPES_TEST_DB_URL: "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+  RECIPES_TEST_MIGRATIONS_DIR: "file://_infra/dev/do/migrations"
 jobs:
   vars:
     name: Variables

@@ -1,6 +1,8 @@
 up:
-	docker-compose down
-	docker-compose up --build --force-recreate --detach --wait --wait-timeout 30
+	docker compose up --build --force-recreate --detach --wait --wait-timeout 30
+
+down:
+	docker compose down
 
 test-unit:
 	poetry run python -m pytest tests/unit
@@ -11,8 +13,7 @@ watch-test-unit:
 test-integration:
 	poetry run python -m pytest tests/integration
 
-test-all: test-unit up test-integration
-	docker-compose down
+test-all: test-coverage up migrate test-integration down
 	
 test-coverage:
 	poetry run coverage run -m pytest tests/unit
@@ -46,3 +47,8 @@ check-all: check test-coverage
 watch-server:
 	poetry run uvicorn main:app --reload
 
+migrate:
+	atlas migrate apply \
+		--dir "$(RECIPES_TEST_MIGRATIONS_DIR)" \
+		--url "$(RECIPES_TEST_DB_URL)" \
+		--revisions-schema public
