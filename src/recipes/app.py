@@ -33,10 +33,10 @@ def create_app(
     # I.e., import config only appears in this file.
     cfg = config.Config() if cfg is None else cfg
 
-    app = FastAPI()
+    app = FastAPI(debug=cfg.recipes_debug)
     app.include_router(router.router)
 
-    logger.info(cfg)
+    logger.info("Config: %s", cfg.log_safe_model_dump())
 
     repository_cls = (
         repository.create_repository(cfg.recipes_repository_name)

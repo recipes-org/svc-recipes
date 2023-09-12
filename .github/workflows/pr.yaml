@@ -22,7 +22,7 @@ jobs:
       IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
       VERSION: ${{ steps.vars.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: pipx install poetry==$POETRY_VERSION
       - uses: actions/setup-python@v4
         with:
@@ -43,7 +43,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: vars
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: recipes-org/infra
+          path: _infra
       - run: pipx install poetry==$POETRY_VERSION
       - uses: actions/setup-python@v4
         with:
@@ -53,41 +57,29 @@ jobs:
       - run: make fmt-check
       - run: make docs-build
       - run: make type-check
+      - run: docker compose up --detach --wait --wait-timeout 30
+      - run: curl -sSf https://atlasgo.sh | sh
+      - run: |
+          atlas migrate apply \
+            --dir "file://_infra/dev/do/migrations/" \
+            --url "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable" \
+            --revisions-schema public
       - run: make test-coverage
+      - run: docker stop $(docker ps -q)
 
-  build-image:
-    name: Build image
+  build-and-push-image:
+    name: Build and push image
     runs-on: ubuntu-latest
-    needs: vars
+    needs: [vars, code-checks]
     env:
       VERSION: ${{ needs.vars.outputs.VERSION}}
       IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
     steps:
-      - uses: actions/checkout@v3
-      - run: docker build --build-arg="RECIPES_SQL_ALCHEMY_DATABASE_URL=${{ secrets.RECIPES_SQL_ALCHEMY_DATABASE_URL }}" --build-arg "RECIPES_SQL_ALCHEMY_DATABASE_CREATE=${{ vars.RECIPES_SQL_ALCHEMY_DATABASE_CREATE }}" -t $IMAGE_NAME:$VERSION .
-      - run: docker save $IMAGE_NAME -o $IMAGE_PATH
-      - uses: actions/upload-artifact@v3
-        with:
-          name: image
-          path: ${{ env.IMAGE_PATH }}
-
-  push-image:
-    name: Push image
-    runs-on: ubuntu-latest
-    needs: [ vars, code-checks, build-image ]
-    env:
-      VERSION: ${{ needs.vars.outputs.VERSION}}
-      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: image
-          path: /tmp
+      - uses: actions/checkout@v4
+      - run: echo $IMAGE_NAME:$VERSION
+      - run: docker build -t $IMAGE_NAME:$VERSION .
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_CI }}
       - run: doctl registry login
-      - run: docker load --input $IMAGE_PATH
-      - run: echo $IMAGE_NAME:$VERSION
-      - run: echo docker image ls -a
       - run: docker push $IMAGE_NAME:$VERSION
