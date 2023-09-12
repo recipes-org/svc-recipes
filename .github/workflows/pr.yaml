@@ -23,11 +23,11 @@ jobs:
         with:
           repository: recipes-org/infra
           path: _infra
-      - run: pipx install poetry==$POETRY_VERSION
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
           cache: "poetry"
+      - run: pipx install poetry==$POETRY_VERSION
       - run: poetry install
       - run: |
           echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
@@ -39,7 +39,7 @@ jobs:
       - run: make type-check
       - run: make test-coverage
       - run: curl -sSf https://atlasgo.sh | sh
-      - run: test-all
+      - run: make test-all
       - run: docker build -t $IMAGE_NAME:$VERSION .
       - uses: digitalocean/action-doctl@v2
         with:
