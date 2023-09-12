@@ -17,7 +17,6 @@ jobs:
   code-checks:
     name: Code Checks
     runs-on: ubuntu-latest
-    needs: vars
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
