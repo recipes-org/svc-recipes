@@ -6,38 +6,14 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-
 env:
   FORCE_COLOR: ${{ vars.FORCE_COLOR }}
   POETRY_VERSION: ${{ vars.RECIPES_POETRY_VERSION }}
   CR: ${{ vars.RECIPES_CR}}
   RECIPES_TEST_DB_URL: "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
   RECIPES_TEST_MIGRATIONS_DIR: "file://_infra/dev/do/migrations"
-jobs:
-  vars:
-    name: Variables
-    runs-on: ubuntu-latest
-    outputs:
-      SHA_SHORT: ${{ steps.vars.outputs.SHA_SHORT }}
-      IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
-      VERSION: ${{ steps.vars.outputs.VERSION }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: pipx install poetry==$POETRY_VERSION
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-          cache: "poetry"
-      - id: vars
-        run: |
-          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          echo "VERSION=$(poetry version -s)" >> "$GITHUB_OUTPUT"
-          echo "IMAGE_NAME=${{ env.CR }}${{ github.repository }}" >> "$GITHUB_OUTPUT"
-      - run: echo "$IMAGE_NAME:$VERSION"
-        env:
-          VERSION: ${{ steps.vars.outputs.VERSION}}
-          IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
 
+jobs:
   code-checks:
     name: Code Checks
     runs-on: ubuntu-latest
@@ -54,30 +30,17 @@ jobs:
           python-version: "3.11"
           cache: "poetry"
       - run: poetry install
+      - run: |
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "VERSION=$(poetry version -s)" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=${{ env.CR }}${{ github.repository }}" >> "$GITHUB_ENV"
+      - run: echo "$IMAGE_NAME:$VERSION"
       - run: make fmt-check
       - run: make docs-build
       - run: make type-check
       - run: make test-coverage
-      - run: make up
       - run: curl -sSf https://atlasgo.sh | sh
-      - run: |
-          atlas migrate apply \
-            --dir "file://_infra/dev/do/migrations/" \
-            --url "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable" \
-            --revisions-schema public
-      - run: make test-integration
-      - run: docker compose down
-
-  build-and-push-image:
-    name: Build and push image
-    runs-on: ubuntu-latest
-    needs: [vars, code-checks]
-    env:
-      VERSION: ${{ needs.vars.outputs.VERSION}}
-      IMAGE_NAME: ${{ needs.vars.outputs.IMAGE_NAME }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo $IMAGE_NAME:$VERSION
+      - run: test-all
       - run: docker build -t $IMAGE_NAME:$VERSION .
       - uses: digitalocean/action-doctl@v2
         with:
