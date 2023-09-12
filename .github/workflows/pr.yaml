@@ -57,15 +57,16 @@ jobs:
       - run: make fmt-check
       - run: make docs-build
       - run: make type-check
-      - run: docker compose up --detach --wait --wait-timeout 30
+      - run: make test-coverage
+      - run: make up
       - run: curl -sSf https://atlasgo.sh | sh
       - run: |
           atlas migrate apply \
             --dir "file://_infra/dev/do/migrations/" \
             --url "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable" \
             --revisions-schema public
-      - run: make test-coverage
-      - run: docker stop $(docker ps -q)
+      - run: make test-integration
+      - run: docker compose down
 
   build-and-push-image:
     name: Build and push image
