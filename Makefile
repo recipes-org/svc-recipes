@@ -1,3 +1,7 @@
+export-local-vars:
+	export RECIPES_TEST_DB_URL=postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+	export RECIPES_TEST_MIGRATIONS_DIR=file://../infra/dev/do/migrations
+
 up:
 	docker compose up --build --force-recreate --detach --wait --wait-timeout 30
 

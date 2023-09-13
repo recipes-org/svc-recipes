@@ -16,7 +16,7 @@ async def test_create_recipe() -> None:
     )
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            "http://localhost:8008/recipes/", json=data.model_dump()
+            "http://localhost:8008/v1/recipes/", json=data.model_dump()
         )
 
     assert resp.status_code == 201

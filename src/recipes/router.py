@@ -7,7 +7,7 @@ from recipes.services import Services
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/v1")
 
 
 @router.get("/recipes/")
