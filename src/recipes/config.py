@@ -22,8 +22,9 @@ class Config(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def database_url_replace_sslmode(cls, v: str) -> str:
-        if v.lower().startswith("postgresql"):
-            v = v.replace("sslmode=", "ssl=")
+        if v.lower().startswith("postgresql") and "?" in v:
+            *parts, _ = v.split("?")
+            v = "?".join(parts)
         return v
 
     def log_safe_model_dump(self) -> dict[str, Any]:
