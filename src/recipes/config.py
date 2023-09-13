@@ -14,10 +14,19 @@ class Config(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def database_url_add_async_driver(cls, v: str) -> str:
-        driver, *parts = v.lower().split(":")
+        driver, *parts = v.split(":")
         if driver.startswith("postgresql") and not driver.endswith("asyncpg"):
             driver = "postgresql+asyncpg"
         return ":".join([driver] + parts)
+
+    @field_validator("database_url")
+    @classmethod
+    def database_url_replace_sslmode(cls, v: str) -> str:
+        if v.lower().startswith("postgresql") and "?" in v:
+            *parts, params = v.split("?")
+            params = params.replace("sslmode=", "ssl=")
+            v = "?".join(parts + [params])
+        return v
 
     def log_safe_model_dump(self) -> dict[str, Any]:
         return {
