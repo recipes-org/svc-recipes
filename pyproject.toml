@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "recipes"
-version = "0.3.2"
+version = "0.3.3"
 description = ""
 authors = ["Sam Thorold <sam.thorold@gmail.com>"]
 readme = "README.md"

@@ -10,6 +10,7 @@ class Config(BaseSettings):
     recipes_sql_alchemy_database_create: bool = False
     recipes_unit_of_work_name: str = "SessionUnitOfWork"
     recipes_debug: bool = False
+    allow_origin: str = "https://dev.colunch.app"
 
     @field_validator("database_url")
     @classmethod

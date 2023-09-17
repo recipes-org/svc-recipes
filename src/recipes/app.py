@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from recipes import config
 from recipes import repository
@@ -34,6 +35,15 @@ def create_app(
     cfg = config.Config() if cfg is None else cfg
 
     app = FastAPI(debug=cfg.recipes_debug)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[cfg.allow_origin],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     app.include_router(router.router)
 
     logger.info("Config: %s", cfg.log_safe_model_dump())
